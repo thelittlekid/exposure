@@ -27,8 +27,11 @@ cd exposure
 # Using the pretrained model
  - `python3 evaluate.py example pretrained models/sample_inputs/*.tif`
  - Results will be generated at `outputs/`
+ - For PyCharm users, please run the command using a terminal, as PyCharm does not recognize the `*` symbol well and returns an error like
+  `ValueError: could not broadcast input array from shape (500,333,3) into shape (333,500,3)` in `tifffile.py`
 
 # Training your own model
+#### Using the default MIT-Adobe FiveK dataset
   - `python3 fetch_fivek.py`
     - This script will automatically setup the [`MIT-Adobe FiveK Dataset`](https://data.csail.mit.edu/graphics/fivek/)
     - Total download size: ~2.4GB
@@ -40,8 +43,20 @@ cd exposure
     - The training progress is visualized at folder `models/example/test/images-example-test/*.png`
     - **Legend**: top row: learned operating sequences; bottom row: replay buffer, result output samples, target output samples
   - `python3 evaluate.py example test models/sample_inputs/*.tif` (This will load `models/example/test`)
-  - Results will be generated at `outputs/`
+  - Results will be generated at `outputs/`  
 
+#### Extra configurations for training with your own image dataset  
+  - Put your folder of desirable images (e.g., `target/`) under `/data/artists/`
+  - Set up the [`MIT-Adobe FiveK Dataset`](https://data.csail.mit.edu/graphics/fivek/) as above  
+  - At the bottom of `config_example.py`, change the name of the target dataset to your image folder. After modification, it should be:   
+    ```python
+    cfg.real_data_provider = lambda: ArtistDataProvider(augmentation=1.0, name='target',  
+                                                    output_size=64, bnw=cfg.bnw,  
+                                                    default_batch_size=cfg.batch_size, target=None,  
+                                                    set_name='2k_target')```
+  - `python3 train.py example model-folder`, you should specify the `model-folder`, e.g., `target`  
+    - The model folder will be `models/example/target`
+  - For evaluation, run `python3 evaluate.py example model-folder input-folder`. You should specify both the model and input folder of test images.  
 # Visual Results
 
 <img src="web/images/fig02.jpeg" width="400"> <img src="web/images/fig04.jpeg" width="400">

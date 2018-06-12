@@ -123,10 +123,10 @@ class GAN:
     print('reward', self.reward.shape)
     # If it stops, future return should be zero
     self.q_value = self.reward + (
-        1.0 - stopped) * cfg.discount_factor * self.new_value
+        1.0 - stopped) * cfg.discount_factor * self.new_value  # r(s,a) + \gamma*V(p(s,a))
     print('q', self.q_value.shape)
-    self.advantage = tf.stop_gradient(self.q_value) - self.old_value
-    self.v_loss = tf.reduce_mean(self.advantage**2, axis=(0, 1))
+    self.advantage = tf.stop_gradient(self.q_value) - self.old_value  # A(s,a) = Q(s,a) - V(s) = r(s,a) + \gamma*V(p(s,a)) - V(s)
+    self.v_loss = tf.reduce_mean(self.advantage**2, axis=(0, 1))  # eq. 10
 
     if cfg.gan == 'ls':
       print('** LSGAN')
@@ -148,7 +148,7 @@ class GAN:
       self.c_average = tf.constant(0, dtype=tf.float32)
     else:
       print('** WGAN')
-      self.c_loss = tf.reduce_mean(self.fake_logit - self.real_logit)
+      self.c_loss = tf.reduce_mean(self.fake_logit - self.real_logit)  # eq. 11
       if cfg.use_TD:
         routine_loss = -self.q_value * self.cfg.parameter_lr_mul
         advantage = -self.advantage
@@ -160,7 +160,7 @@ class GAN:
       assert len(routine_loss.shape) == len(self.surrogate_loss_addition.shape)
 
       self.g_loss = tf.reduce_mean(routine_loss + self.surrogate_loss_addition *
-                                   tf.stop_gradient(advantage))
+                                   tf.stop_gradient(advantage))  # -(Q(s,a)*lr + ls*A(s,a))
       self.emd = -self.c_loss
       self.c_average = tf.reduce_mean(self.fake_logit + self.real_logit) * 0.5
     update_average = self.exp_moving_average.apply([self.c_average])

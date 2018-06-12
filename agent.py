@@ -7,8 +7,18 @@ from pdf_sample_layer import pdf_sample
 from util import enrich_image_input
 from util import STATE_DROPOUT_BEGIN, STATE_REWARD_DIM, STATE_STEP_DIM, STATE_STOPPED_DIM
 
+"""
+  agent.py contains functions for building the actor network (i.e., agent CNN) and extracting features using the network 
+"""
 
 def feature_extractor(net, output_dim, cfg):
+  """
+  Build the actor network and extract feature using it
+  :param net: the initial layer of the actor network
+  :param output_dim: dimension of the output feature
+  :param cfg: configuration dictionary
+  :return: the last layer (as a feature extractor) of the actor network
+  """
   net = net - 0.5
   min_feature_map_size = 4
   assert output_dim % (
@@ -39,6 +49,17 @@ def feature_extractor(net, output_dim, cfg):
 
 # Output: float \in [0, 1]
 def agent_generator(inp, is_train, progress, cfg, high_res=None, alex_in=None):
+  """
+  Build an agent as the actor (first half of the generator in the GAN class)
+  :param inp: [input placeholder, noise placeholder, states placeholder]
+  :param is_train: whether in the training mode or not
+  :param progress: current progress
+  :param cfg: dictionary of configuration
+  :param high_res: high-resolution image
+  :param alex_in:
+  :return: (net, new_states, surrogate, penalty), debug_info, debugger
+  """
+
   net, z, states = inp
   filters = cfg.filters
 
@@ -101,7 +122,7 @@ def agent_generator(inp, is_train, progress, cfg, high_res=None, alex_in=None):
     print('    pdf_filter', pdf[:, 1:].shape)
     # print('    pdf_mask', states[:, STATE_DROPOUT_BEGIN:].shape)
 
-    pdf = pdf * (1 - cfg.exploration) + cfg.exploration * 1.0 / len(filters)
+    pdf = pdf * (1 - cfg.exploration) + cfg.exploration * 1.0 / len(filters) # \pi: prob for each filter
     # pdf = tf.to_float(is_train) * tf.concat([pdf[:, :1], pdf[:, 1:] * states[:, STATE_DROPOUT_BEGIN:]], axis=1) \
     # + (1.0 - tf.to_float(is_train)) * pdf
     pdf = pdf / (tf.reduce_sum(pdf, axis=1, keep_dims=True) + 1e-30)
