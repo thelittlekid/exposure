@@ -14,7 +14,7 @@ from util import STATE_DROPOUT_BEGIN, STATE_REWARD_DIM, STATE_STEP_DIM, STATE_ST
 def feature_extractor(net, output_dim, cfg):
   """
   Build the actor network and extract feature using it
-  :param net: the initial layer of the actor network
+  :param net: the initial layer of the actor network: ? x 64 x 64 x (3 + Extra planes)
   :param output_dim: dimension of the output feature
   :param cfg: configuration dictionary
   :return: the last layer (as a feature extractor) of the actor network
