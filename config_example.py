@@ -58,6 +58,8 @@ cfg.over_length_keep_prob = 0.5
 cfg.all_reward = 1.0
 # Append input image with states?
 cfg.img_include_states = True
+# Append input image with zone features?
+cfg.img_include_zone_system_features = True
 # with prob. cfg.exploration, we randomly pick one action during training
 cfg.exploration = 0.05
 # Action entropy penalization

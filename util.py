@@ -3,6 +3,7 @@ import cv2
 import tensorflow as tf
 import os
 import sys
+from artistic_feature_extractor import compute_zone_system_features
 '''
 output states:
     0: has rewards?
@@ -29,6 +30,19 @@ def instance_norm(x):
 
 
 def enrich_image_input(cfg, net, states):
+  """
+  Enrich the image input with additional hand-crafted features
+
+  :param cfg: configuration dictionary
+  :param net: initial input tensor that holds the original image
+  :param states: state tensors indicate which filters have been used, one state tensor for each filter (total 8)
+  :return: a tensor that holds the enriched image input
+  """
+  if cfg.img_include_zone_system_features:
+    print("Enriching input images with zone features. ")
+    zone_system_features = compute_zone_system_features(net, mode='color')
+    net = tf.concat([net, zone_system_features], axis=3)
+
   if cfg.img_include_states:
     print(("states for enriching", states.shape))
     states = states[:, None, None, :] + (net[:, :, :, 0:1] * 0)
