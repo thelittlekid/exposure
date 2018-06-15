@@ -40,7 +40,7 @@ def enrich_image_input(cfg, net, states):
   """
   if cfg.img_include_zone_system_features:
     print("Enriching input images with zone features. ")
-    zone_system_features = compute_zone_system_features(net, mode='color')
+    zone_system_features = compute_zone_system_features(net)
     net = tf.concat([net, zone_system_features], axis=3)
 
   if cfg.img_include_states:

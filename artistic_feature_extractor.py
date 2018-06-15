@@ -21,7 +21,7 @@ def compute_zone_system_features(img, zone_num=11, mode='mask'):
     zone_system_features = []
 
     # Compute thresholds in the zone system
-    thresholds = (255 / zone_num) * np.array(range(zone_num + 1))
+    thresholds = (1 / zone_num) * np.array(range(zone_num + 1))
     # Handle the boundary thresholds
     thresholds[0] -= 1
     thresholds[-1] += 1
