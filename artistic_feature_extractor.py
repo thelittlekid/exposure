@@ -34,11 +34,11 @@ def compute_zone_system_features(img, zone_num=11, mode='mask'):
         for cidx in range(img.shape[-1]):
             channel = img[..., cidx]
 
-            # Obtain the mask of components in the channel that fall into the zone
+            # Obtain the binary mask of components in the channel that fall into the zone
             if type(img) == tf.Tensor:
                 feature_mask = tf.cast(tf.logical_and(min_value <= channel, channel < max_value), dtype=tf.float32)
             else:
-                feature_mask = np.logical_and(min_value <= channel, channel < max_value)  # binary mask
+                feature_mask = np.logical_and(min_value <= channel, channel < max_value)
 
             # Compute and append additional features
             if mode == 'mask':
@@ -54,7 +54,7 @@ def compute_zone_system_features(img, zone_num=11, mode='mask'):
                     feature_map = tf.multiply(channel, feature_mask)
                 else:
                     feature_map = np.copy(channel)  # all numpy arrays are pass by reference
-                    feature_map[feature_mask] = 0  # masked color channel
+                    feature_map[np.logical_not(feature_mask)] = 0  # masked color channel
 
                 zone_system_features.append(feature_map)
 
