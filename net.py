@@ -73,6 +73,7 @@ class GAN:
         images=self.fake_input, cfg=cfg, reuse=True, is_train=self.is_training)
     print('real_logit', self.real_logit.shape)
 
+    # The value network
     with tf.variable_scope('rl_value'):
       print('self.states', self.states.shape)
       print('self.new_states', self.new_states.shape)
@@ -95,8 +96,9 @@ class GAN:
     print('clear final', clear_final.shape)
     print('new_value', self.new_value.shape)
     self.new_value = self.new_value * (1.0 - clear_final)
-    # Reward: the bigger, the better
 
+    # Reward: the incremental improvement in the quality score modeled by the discriminator network
+    # (the bigger, the better)
     if cfg.supervised:
       self.raw_reward = (cfg.all_reward +
                          (1 - cfg.all_reward) * stopped) * (-self.fake_logit)
@@ -681,6 +683,12 @@ class GAN:
     print('Scripts are backed up. Initializing network...')
 
   def get_high_resolution_net(self, res):
+    """
+    Build a GAN network high resolution images. Here "critic" means discriminator, and the generator contains both actor
+    and critic
+    :param res: resolution of the image, tuple (h x w)
+    :return: a dictionary that contains all required data for
+    """
     if res not in self.high_res_nets:
       print('Creating high_res_network for ', res)
       net = Dict()
