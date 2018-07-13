@@ -4,6 +4,7 @@ import tensorflow as tf
 import os
 import sys
 from artistic_feature_extractor import compute_zone_system_features
+
 '''
 output states:
     0: has rewards?
@@ -38,7 +39,7 @@ def enrich_image_input(cfg, net, states):
   :param states: state tensors indicate which filters have been used, one state tensor for each filter (total 8)
   :return: a tensor that holds the enriched image input
   """
-  if cfg.img_include_zone_system_features:
+  if False: # cfg.img_include_zone_system_features:
     print("Enriching input images with zone features. ")
     zone_system_features = compute_zone_system_features(net)
     net = tf.concat([net, zone_system_features], axis=3)
@@ -678,3 +679,51 @@ def test_async_task_manager():
     time.sleep(1)
   async.stop()
   print(time.time() - t)
+
+
+def reorder_pixels(img, block=[1, 1]):
+  """
+  Reorder the pixels in an image, using the block size as a unit
+  :param img: input image
+  :param block: block size: [h, w]
+  :return: images with pixels reordered
+
+  Reference: https://stackoverflow.com/questions/14593441/how-to-reorder-pixels
+  """
+  h, w = img.shape[0], img.shape[1]
+  bh, bw = block[0], block[1]
+  _img = np.zeros_like(img)
+
+  xblock = math.floor(h / bh)
+  yblock = math.floor(w / bw)
+
+  blockmap = [(xb*bh, yb*bw, (xb+1)*bh, (yb+1)*bw)
+        for xb in range(xblock) for yb in range(yblock)]
+
+  shuffled = list(blockmap)
+  np.random.shuffle(shuffled)
+
+  for box, sbox in zip(blockmap, shuffled):
+    xmin, ymin, xmax, ymax = box
+    _xmin, _ymin, _xmax, _ymax = sbox
+    _img[_xmin:_xmax, _ymin:_ymax, :] = img[xmin:xmax, ymin:ymax, :]
+
+  return _img
+
+
+def display_image(data):
+  from PIL import Image
+  img = Image.fromarray(data, 'RGB')
+  img.show()
+
+
+if __name__ == "__main__":
+  FILE_PATH = 'data/artists/FiveK_C/0001.jpg'
+  image = cv2.imread(FILE_PATH)[:, :, ::-1]  # read image in r-g-b order
+  _image = reorder_pixels(image, [2, 2])
+
+  from PIL import Image
+  img = Image.fromarray(_image, 'RGB')
+  img.show()
+
+  pass

@@ -7,6 +7,9 @@ import shutil
 import numpy as np
 import glob
 import cv2
+import util
+import ffmpeg
+import scipy
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
 from matplotlib import pyplot as plt
@@ -15,6 +18,11 @@ from matplotlib.transforms import Bbox, TransformedBbox
 from PIL import Image
 import tensorflow as tf
 import random
+
+FILE_PATH = 'data/artists/FiveK_C/0001.jpg'
+FiveK_C_FOLDER = '/Users/yifan/Documents/GitHub/exposure/data/artists/FiveK_C/'
+RETRAIN_DATA_FOLDER = '/Users/yifan/Dropbox/stylish photos/Data/FiveK_C_retrain/'
+
 
 def load_pretrained_networks(config_name, model_dir, model_name, iternum=20000):
     """
@@ -61,9 +69,9 @@ def compute_emd(net, imgs_real, imgs_fake):
     return net.sess.run(net.emd, feed_dict={net.real_data: imgs_real, net.fake_output: imgs_fake})
 
 
-if __name__ == "__main__":
-    img_dir = sys.argv[3]
-    img_dir_real = './data/artists/FiveKtwo'
+def test_discriminator_logits():
+    # img_dir = sys.argv[3]
+    img_dir_real = './data/artists/Ansel_Adams'
     img_dir_fake = './data/artists/koda'
 
     # Get the list of image paths in the directory
@@ -74,7 +82,7 @@ if __name__ == "__main__":
     print("Number of images in the directory: ", img_num)
 
     # Load the pretrained network
-    net = load_pretrained_networks(config_name=sys.argv[1], model_dir='models', model_name=sys.argv[2])
+    net = load_pretrained_networks(config_name='example', model_dir='models', model_name='Ansel_Adams')
 
     # Load the images
     imgs_real = load_images(img_paths_real)
@@ -88,13 +96,35 @@ if __name__ == "__main__":
 
     # Compute earth mover's distance
     emd = compute_emd(net, imgs_real, imgs_fake)
-    print("Earth mover's distance: ", emd)
+    print("Earth mover's distance (real - fake): ", emd)
     pass
 
     """
     The discriminator always outputs a positive number, even for zeros, ones, and random.rand. The output is no longer a 
     probability. The earth mover's distance is quite close for jpeg datasets. 
     """
+
+
+def reorder_pixels_by_intensity():
+    """
+    Reordering pixels according to the intensity
+    """
+
+    img = cv2.imread(FILE_PATH)[:, :, ::-1]
+    img_1d = img.reshape((-1, 3))
+    intensity = np.sum(img, axis=2).ravel()
+    argseq = np.argsort(intensity)
+
+    img_1d_ = img_1d[argseq, :]
+    img_ = img_1d_.reshape(img.shape)
+
+    util.display_image(img_)
+
+
+if __name__ == "__main__":
+
+
+    pass
 
 
 
