@@ -55,7 +55,7 @@ class ArtistDataProvider(DataProvider):
     files.sort()
     for f in files:
       image = (cv2.imread(os.path.join(folder, f))[:, :, ::-1] /
-               255.0).astype(np.float32)
+               255.0).astype(np.float32)  # for the real data
       image = get_image_center(image)
       # image = cv2.resize(image, (64, 64), interpolation=cv2.INTER_AREA)
       # data.append(image)
@@ -73,8 +73,35 @@ class ArtistDataProvider(DataProvider):
     super(ArtistDataProvider, self).__init__(data, *args, **kwargs)
 
 
+def build_5k_subset(src_dir, des_dir, filelist='data/folds/FiveK_train_second2k.txt'):
+  """
+  Build a subset of artist images based using the files specified in the list (in .txt format)
+  :param src_dir: source directory storing all available images
+  :param des_dir: destination directory that will store the subset of images specified by the file list
+  :param filelist: list of jpeg files (without extension), each line contains one file name + '\n'
+  :return: void
+  """
+  from glob import glob
+  from shutil import copy2
+  from os.path import basename
+
+  files = glob(src_dir + '*.jpg', recursive=False)  # Available images for the subset
+
+  idx = open(filelist, 'r').readlines()
+  active_files = [i[:-1] + '.jpg' for i in idx]
+
+  if not os.path.exists(des_dir):
+    os.makedirs(des_dir)
+
+  for file in files:
+    filename = basename(file)
+    if filename in active_files:
+      copy2(src_dir + filename, des_dir)
+
+
+
 def test():
-  dp = ArtistDataProvider('C')
+  dp = ArtistDataProvider()
   while True:
     d = dp.get_next_batch(64)
     cv2.imshow('img', d[0][0, :, :, ::-1])
@@ -82,5 +109,6 @@ def test():
 
 
 if __name__ == '__main__':
-  test()
+  # test()
   # preprocess()
+  build_5k_subset('/Users/yifan/Documents/GitHub/exposure/data/artists/FiveK_C/', '/Users/yifan/Desktop/ground_truth')
