@@ -711,9 +711,9 @@ def reorder_pixels(img, block=[1, 1]):
   return _img
 
 
-def display_image(data):
+def display_image(data, mode='RGB'):
   from PIL import Image
-  img = Image.fromarray(data, 'RGB')
+  img = Image.fromarray(data.astype('uint8'), mode)
   img.show()
 
 

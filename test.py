@@ -13,8 +13,8 @@ import util
 FILE_PATH = 'data/artists/FiveK_C/0001.jpg'
 FILE_PATH = 'data/artists/Ansel_Adams/Afternoon sun.jpg'
 FiveK_C_FOLDER = '/Users/yifan/Documents/GitHub/exposure/data/artists/FiveK_C/'
-FiveK_C_FOLDER = '/Users/yifan/Dropbox/stylish photos/Data/FiveK_C_reordered_64/'
-RETRAIN_DATA_FOLDER = '/Users/yifan/Dropbox/stylish photos/Data/FiveK_C_retrain_16_b64_reordered/'
+# FiveK_C_FOLDER = '/Users/yifan/Dropbox/stylish photos/Data/FiveK_C_VsYCbCr_gray/'
+RETRAIN_DATA_FOLDER = '/Users/yifan/Dropbox/stylish photos/Data/FiveK_C_8clustered_VsGrayColor/'
 OUTPUT_FOLDER = '/Users/yifan/Dropbox/stylish photos/Data/FiveK_C_reordered_2/'
 
 # image = cv2.imread(FILE_PATH)[:, :, ::-1]  # read image in r-g-b order
@@ -38,12 +38,12 @@ def cluster_with_haystack():
     # Extract features using pretrained networks
     # Clustering images based on features extracted by pretrained networks
     # Load pre-computed features in cache
-    cache_path = '/Users/yifan/Dropbox/stylish photos/inputs/5k_feature_haystack_b64.pkl'
+    cache_path = '/Users/yifan/Dropbox/stylish photos/inputs/5k_feature_vectorscope_gray_haystack.pkl'
     with open(cache_path, 'rb') as f:
         features = pickle.load(f)
 
     haystack_features = features[0]['features']
-    kmeans = KMeans(n_clusters=16, random_state=0).fit(haystack_features)
+    kmeans = KMeans(n_clusters=8, random_state=0).fit(haystack_features)
 
     files = glob(FiveK_C_FOLDER + '*.jpg', recursive=False)
     files.sort()
@@ -88,6 +88,51 @@ def shuffle_image_pixels():
             #     break
 
 
+def cluster_with_multi_haystack():
+    cache_path = '/Users/yifan/Dropbox/stylish photos/inputs/5k_feature_vectorscope_gray_haystack.pkl'
+    haystack_features_1 = load_features(cache_path)
+
+    cache_path = '/Users/yifan/Dropbox/stylish photos/inputs/5k_feature_vectorscope_color_haystack.pkl'
+    haystack_features_2 = load_features(cache_path)
+
+    haystack_features = []
+    for i in range(len(haystack_features_1)):
+        combined_feature = np.concatenate((haystack_features_1[i], haystack_features_2[i]))
+        haystack_features.append(combined_feature)
+
+    kmeans = KMeans(n_clusters=8, random_state=0).fit(haystack_features)
+
+    files = glob(FiveK_C_FOLDER + '*.jpg', recursive=False)
+    files.sort()
+
+    labels = kmeans.labels_
+
+    # Create subfolders for each cluster
+    for i in range(max(labels) + 1):
+        subfolder = RETRAIN_DATA_FOLDER + str(i) + '/'
+        if not os.path.exists(subfolder):
+            os.makedirs(subfolder)
+
+    # Copy images to each cluster
+    for i in range(len(files)):
+        file, label = files[i], labels[i]
+        subfolder = RETRAIN_DATA_FOLDER + str(label) + '/'
+        copy2(file, subfolder)
+
+
+def load_features(cache_path):
+    """
+    Load pre-computed features from .pkl file
+    :param cache_path:
+    :return: a list of numpy arrays, each element in the list corresponds to the feature for an input image
+    """
+    with open(cache_path, 'rb') as f:
+        cache = pickle.load(f)
+
+    return cache[0]['features']
+
+
 if __name__ == "__main__":
+    cluster_with_multi_haystack()
     pass
 

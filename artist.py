@@ -78,7 +78,8 @@ def build_5k_subset(src_dir, des_dir, filelist='data/folds/FiveK_train_second2k.
   Build a subset of artist images based using the files specified in the list (in .txt format)
   :param src_dir: source directory storing all available images
   :param des_dir: destination directory that will store the subset of images specified by the file list
-  :param filelist: list of jpeg files (without extension), each line contains one file name + '\n'
+  :param filelist: list of file names (without extension), each line contains one file name + '\n', indicating the files
+                   to be selected
   :return: void
   """
   from glob import glob

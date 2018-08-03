@@ -202,8 +202,15 @@ class ReplayMemory:
     states = [x.state for x in batch]
     return np.stack(images, axis=0), np.stack(states, axis=0)
 
+
   @staticmethod
   def records_to_images_states_features(batch):
+    """
+    Extract images, states and features from records in the pool.
+    Only used for real-time visualization
+    :param batch: batch of records (a list of dictionaries)
+    :return: 3-tuple of arrays containing images, states , and features, respectively
+    """
     images = [x.image for x in batch]
     states = [x.state for x in batch]
     features = [x.feature for x in batch]
@@ -226,6 +233,7 @@ class ReplayMemory:
         img = np.stack([img, gt])
         records.append(Dict(image=img, state=state, feature=feature))
     return records
+
 
   def get_next_fake_batch(self, batch_size):
     # print('get_next')
